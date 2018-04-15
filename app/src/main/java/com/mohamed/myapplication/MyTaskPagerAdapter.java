@@ -9,9 +9,9 @@ import android.support.v4.app.FragmentStatePagerAdapter;
  * Created by mohamed on 13/04/18.
  */
 
-public class MyTaskPageAdapter extends FragmentStatePagerAdapter {
+public class MyTaskPagerAdapter extends FragmentStatePagerAdapter {
 
-    public MyTaskPageAdapter(FragmentManager fm) {
+    public MyTaskPagerAdapter(FragmentManager fm) {
         super(fm);
     }
 

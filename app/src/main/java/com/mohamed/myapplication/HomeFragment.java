@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -21,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements ServiceAdapter.OnItemClickListener{
 
     private FirebaseFirestore mFirebaseFirestore;
     private RecyclerView servicesRecycelerView;
@@ -54,14 +55,24 @@ public class HomeFragment extends Fragment {
                         ServiceModel model = doc.toObject(ServiceModel.class);
                         serviceModelList.add(model);
                     }
-                    serviceAdapter = new ServiceAdapter(getActivity(),serviceModelList);
-                    servicesRecycelerView.setAdapter(serviceAdapter);
+                    serviceAdapter.notifyDataSetChanged();
                 }
             }
         });
-
+        serviceAdapter = new ServiceAdapter(getActivity(),serviceModelList);
+        servicesRecycelerView.setAdapter(serviceAdapter);
+        serviceAdapter.setOnItemClickListener(this);
         return view;
     }
 
 
+    @Override
+    public void onFavoriteItemClick(int position) {
+        Toast.makeText(getActivity(), "FAV: " + position, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onBookButtonClick(int position) {
+        Toast.makeText(getActivity(), "Pos: " + position, Toast.LENGTH_SHORT).show();
+    }
 }

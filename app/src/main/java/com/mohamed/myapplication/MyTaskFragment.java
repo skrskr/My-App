@@ -14,7 +14,7 @@ public class MyTaskFragment extends Fragment {
 
     private TabLayout tabLayout;
     private ViewPager viewPager;
-    private MyTaskPageAdapter pagerAdapter;
+    private MyTaskPagerAdapter pagerAdapter;
 
     public MyTaskFragment() {
         // Required empty public constructor
@@ -29,7 +29,7 @@ public class MyTaskFragment extends Fragment {
 
         tabLayout = view.findViewById(R.id.tabLayout);
         viewPager = view.findViewById(R.id.viewPager);
-        pagerAdapter = new MyTaskPageAdapter(getActivity().getSupportFragmentManager());
+        pagerAdapter = new MyTaskPagerAdapter(getActivity().getSupportFragmentManager());
         viewPager.setAdapter(pagerAdapter);
         tabLayout.setupWithViewPager(viewPager, true);
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));

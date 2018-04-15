@@ -179,23 +179,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int itemId = item.getItemId();
         switch (itemId) {
             case R.id.action_home:
+                replaceFragment(mHomeFragment,"Home");
+                //mBottomNavView.setSelectedItemId(R.id.action_home);
                 Toast.makeText(this, "TILTLE: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                return true;
+                break;
             case R.id.action_favorites:
                 Toast.makeText(this, "TILTLE: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                return true;
+                break;
             case R.id.action_me:
                 Toast.makeText(this, "TILTLE: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                return true;
+                break;
             case R.id.action_payment_history:
                 Toast.makeText(this, "TILTLE: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                return true;
+                break;
             case R.id.action_login:
                 Toast.makeText(this, "TILTLE: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                return true;
+                break;
 
         }
         mDrawerLayout.closeDrawer(GravityCompat.START);
-        return false;
+        return true;
     }
 }
