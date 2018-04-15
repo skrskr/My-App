@@ -2,4 +2,6 @@
     <string name="app_name">My Application</string>
     <string name="drawer_close">Close</string>
     <string name="drawer_open">Open</string>
+
+    <string name="facebook_app_id">122714438299480</string>
 </resources>

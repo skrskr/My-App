@@ -1,6 +1,7 @@
 package com.mohamed.myapplication;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -142,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Toast.makeText(this, "TILTLE: " + item.getTitle(), Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.action_login:
-                Toast.makeText(this, "TILTLE: " + item.getTitle(), Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), LoginActivity.class));
                 return true;
 
         }
