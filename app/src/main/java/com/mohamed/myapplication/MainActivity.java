@@ -12,6 +12,8 @@ import android.net.wifi.WifiConfiguration;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -41,6 +43,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private ActionBarDrawerToggle mDrawerToggle;
+    private HomeMainFragment homeMainFragment;
+    private ChatFragment mChatFragment;
+    private MyTaskFragment mMyTaskFragment;
+    private AlertFragment mAlertFragment;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +55,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
         mToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
+        homeMainFragment = new HomeMainFragment();
+        mMyTaskFragment = new MyTaskFragment();
+        mAlertFragment = new AlertFragment();
+        mChatFragment = new ChatFragment();
+        replaceFragment(homeMainFragment, "Home");
         mToolbar.setTitleTextColor(Color.WHITE);
         mToolbar.setTitle("");
         final PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
@@ -126,28 +138,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
+    private void replaceFragment(Fragment fragment, String title) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.main_frame, fragment);
+        transaction.commit();
+        if (!title.equals("Home"))
+            mToolbar.setTitle(title);
+    }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
         switch (itemId) {
             case R.id.action_home:
+                replaceFragment(homeMainFragment, "Home");
+                //mBottomNavView.setSelectedItemId(R.id.action_home);
                 Toast.makeText(this, "TILTLE: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                return true;
+                break;
             case R.id.action_favorites:
-                Toast.makeText(this, "TILTLE: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                return true;
+                replaceFragment(new FavouriteFragment(), item.getTitle().toString());
+                break;
             case R.id.action_me:
                 Toast.makeText(this, "TILTLE: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                return true;
+                break;
             case R.id.action_payment_history:
-                Toast.makeText(this, "TILTLE: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                return true;
+                replaceFragment(new PaymentHistoryFragment(), item.getTitle().toString());
+                break;
             case R.id.action_login:
                 startActivity(new Intent(getApplicationContext(), LoginActivity.class));
-                return true;
+                break;
 
         }
         mDrawerLayout.closeDrawer(GravityCompat.START);
-        return false;
+        return true;
     }
 }
