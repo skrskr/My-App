@@ -1,21 +1,18 @@
 package com.mohamed.myapplication;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -42,6 +39,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.TwitterAuthProvider;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
 import com.twitter.sdk.android.core.Twitter;
@@ -51,9 +49,6 @@ import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.TwitterSession;
 import com.twitter.sdk.android.core.identity.TwitterLoginButton;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
 
@@ -61,6 +56,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     FirebaseAuth auth;
     private ImageView facebookLogin, googleLogin, twitterLogin;
     private EditText mEditText_email, mEditText_password;
+    private Button mButtonLoginCreate;
     private CallbackManager callbackManager;
     private GoogleApiClient mGoogleApiClient;
     private FirebaseAuth mAuth;
@@ -72,7 +68,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         super.onCreate(savedInstanceState);
         FacebookSdk.sdkInitialize(getApplicationContext());
         TwitterAuthConfig authConfig = new TwitterAuthConfig(
-               "6e5fL5pGOrImfYRrQVpNrUsPK",
+                "6e5fL5pGOrImfYRrQVpNrUsPK",
                 "oy0U0fyZv8maEy8dHGyYV758gkl605b6c6wVu8ZL62LW52GlS8");
 
         TwitterConfig twitterConfig = new TwitterConfig.Builder(this)
@@ -127,14 +123,114 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         initial_GoogleLogin();
         initial_facebookLogin();
 
+
     }
+
+    private void alert_user_signup() {
+        new AlertDialog.Builder(LoginActivity.this)
+                .setMessage("we will be verifying your email " + mEditText_email.getText() + " is this ok or you would like to edit the email ?")
+                .setCancelable(true)
+                .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        signUp();
+                        mProgressDialog.show();
+                    }
+                }).setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        }).show();
+    }
+
+    private void alert_user_confirm_account() {
+        new AlertDialog.Builder(LoginActivity.this)
+                .setMessage("please check your email")
+                .setCancelable(false)
+                .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                }).show();
+    }
+
+    private void signUp() {
+        auth.createUserWithEmailAndPassword(mEditText_email.getText().toString(), mEditText_password.getText().toString())
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            mProgressDialog.dismiss();
+                            auth.getCurrentUser().sendEmailVerification();
+                            UserModel user = new UserModel();
+                            user.setuEmail(mEditText_email.getText().toString());
+                            user.setuID(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                            user.setuName("user");
+                            user.setuProfile("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRG1PZt1w5WTCZbdDhXyOZ3lCpbUuKvEnqy3GLtlT3ctk6KjOw-");
+                            FirebaseFirestore.getInstance().collection("Users").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(user)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            alert_user_confirm_account();
+                                        }
+                                    });
+
+                        } else {
+                            mProgressDialog.dismiss();
+                            Toast.makeText(LoginActivity.this, "check your email and password", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
 
     private void setupViews() {
         facebookLogin = findViewById(R.id.iv_fb);
         googleLogin = findViewById(R.id.iv_gmail);
         twitterLogin = findViewById(R.id.iv_twitter);
         mEditText_password = findViewById(R.id.et_password);
+        mButtonLoginCreate = findViewById(R.id.btn_login_create);
         mEditText_email = findViewById(R.id.et_email);
+        mButtonLoginCreate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (TextUtils.isEmpty(mEditText_email.getText().toString())) {
+                    mEditText_email.setError("enter your email");
+                    return;
+                }
+                if (TextUtils.isEmpty(mEditText_password.getText().toString())) {
+                    mEditText_password.setError("enter your password");
+                    return;
+                }
+                if (mEditText_password.getText().toString().length() < 6) {
+                    mEditText_password.setError("password too small");
+                    return;
+                }
+                mProgressDialog.show();
+                auth.signInWithEmailAndPassword(mEditText_email.getText().toString(), mEditText_password.getText().toString())
+                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if (task.isComplete()) {
+                                    if (!task.isSuccessful()) {
+                                        mProgressDialog.dismiss();
+                                        alert_user_signup();
+                                    } else {
+                                        mProgressDialog.dismiss();
+                                        finish();
+
+                                    }
+                                } else {
+                                    mProgressDialog.dismiss();
+                                    Toast.makeText(LoginActivity.this, "check your connection", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+            }
+        });
+
+
         facebookLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -173,11 +269,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     }
 
     private void handleTwitterSession(TwitterSession session) {
-//        Log.d(TAG, "handleTwitterSession:" + session);
-        // [START_EXCLUDE silent]
         showProgress();
-        // [END_EXCLUDE]
-
         AuthCredential credential = TwitterAuthProvider.getCredential(
                 session.getAuthToken().token,
                 session.getAuthToken().secret);
@@ -187,21 +279,25 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-//                            Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
-//                            updateUI(user);
+                            UserModel model = new UserModel();
+                            model.setuID(user.getUid());
+                            model.setuProfile(user.getPhotoUrl().toString());
+                            model.setuName(user.getDisplayName());
+                            model.setuEmail(user.getEmail());
+                            FirebaseFirestore.getInstance().collection("Users").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(model)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            finish();
+                                        }
+                                    });
                         } else {
-                            // If sign in fails, display a message to the user.
-//                            Log.w(TAG, "signInWithCredential:failure", task.getException());
+
                             Toast.makeText(getApplicationContext(), "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
-//                            updateUI(null);
                         }
-
-                        // [START_EXCLUDE]
                         hideProgress();
-                        // [END_EXCLUDE]
                     }
                 });
     }
@@ -222,7 +318,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             } else {
                 hideProgress();
                 Toast.makeText(this, "failed", Toast.LENGTH_SHORT).show();
-                Log.d("GOOGLE_ERROR", result.toString());
             }
         }
         mLoginButton.onActivityResult(requestCode, resultCode, data);
@@ -253,7 +348,18 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                                         name = email;
                                     if (!TextUtils.isEmpty(user.getPhotoUrl().toString()))
                                         url = user.getPhotoUrl().toString();
-                                    //   addUserData(user.getUid(), email, name, "", "", "", url);
+                                    UserModel model = new UserModel();
+                                    model.setuID(user.getUid());
+                                    model.setuProfile(user.getPhotoUrl().toString());
+                                    model.setuName(user.getDisplayName());
+                                    model.setuEmail(user.getEmail());
+                                    FirebaseFirestore.getInstance().collection("Users").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(model)
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    finish();
+                                                }
+                                            });
                                 }
                             }
                         } else {
@@ -315,6 +421,18 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                                     else
                                         name = email;
                                     url = "https://graph.facebook.com/" + Profile.getCurrentProfile().getId() + "/picture?height=200";
+                                    UserModel model = new UserModel();
+                                    model.setuID(user.getUid());
+                                    model.setuProfile(user.getPhotoUrl().toString());
+                                    model.setuName(user.getDisplayName());
+                                    model.setuEmail(user.getEmail());
+                                    FirebaseFirestore.getInstance().collection("Users").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(model)
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    finish();
+                                                }
+                                            });
                                 }
                             } else
                                 Toast.makeText(LoginActivity.this, "null", Toast.LENGTH_SHORT).show();

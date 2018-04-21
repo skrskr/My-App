@@ -8,8 +8,7 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_chat"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layoutManager="android.support.v7.widget.LinearLayoutManager" />
+        android:layout_height="match_parent" />
 
     <ImageView
         android:id="@+id/iv_no_chat"
